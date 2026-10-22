@@ -336,6 +336,7 @@ public class Game {
         System.out.println("\nPress ENTER to continue...");
         scanner.nextLine();
     }
+    //
     public static int playerAction(int playerChoice) throws InterruptedException {
         switch (playerChoice){
                 case 1 -> battlePlayer();
