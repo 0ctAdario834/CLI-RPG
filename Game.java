@@ -1,6 +1,3 @@
-
-import java.io.IOException;
-
 public class Game {
     /* Utilities */
     static java.util.Scanner scanner = new java.util.Scanner(System.in);
@@ -77,7 +74,7 @@ public class Game {
             while (System.in.available() > 0) {
                 System.in.read();
             }
-        } catch (IOException ignored) {}
+        } catch (java.io.IOException ignored) {}
         System.out.flush();
     }
     //
