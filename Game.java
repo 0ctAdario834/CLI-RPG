@@ -1,9 +1,14 @@
+
+import java.io.IOException;
+
 public class Game {
     /* Utilities */
     static java.util.Scanner scanner = new java.util.Scanner(System.in);
+    static boolean fastMode = false;
+    static boolean debugMode = false;
     static String userName = "Player";
     static int playerChoice = 0;
-    static int enemyChoice = 0;
+    static byte enemyChoice = 0;
     static boolean playerIsAttacking = false;
     static boolean enemyIsAttacking = false;
     static boolean playerIsDefending = false;
@@ -26,23 +31,30 @@ public class Game {
         EnemyDefendPlayerChargeUp,
         noneAttack,
     }static turnScenarios turnScenario;
+    /* Level */
+        static byte level = 1;
     /*  Player stats */
-        static int playerLevel = 1;
         static int playerHealth = 100;
         static int playerDmg = 10;
         static double playerDmgMultiplier = 1;
-        static int playerSpeed = 1;
+        static double playerChargeBonus = 1;
+        static double playerDmgMultCurrLvl = 1;
+        static byte playerSpeed = 1;
         static int playerDefenseHeal = 5;
     /*  Enemy stats */
         static int enemyHealth = 100;
         static int enemyDmg = 10;
         static double enemyDmgMultiplier = 1;
-        static int enemySpeed = 1;
+        static double enemyChargeBonus = 1;
+        static double enemyDmgMultCurrLvl = 1;
+        static byte enemySpeed = 1;
         static int enemyDefenseHeal = 5;
     /* This probably makes VSCode stop complaining about Thread.sleep() in loops by making it technically an indirect Thread.sleep() */
-    public static void sleep(long milliseconds) throws InterruptedException{
+    public static void sleep(long milliseconds) {
         try{Thread.sleep(milliseconds);}
-        catch(InterruptedException e){}
+        catch(InterruptedException e){
+            Thread.currentThread().interrupt();
+        }
     }
     /**/
     public static void clearScreen() {
@@ -56,35 +68,64 @@ public class Game {
             new ProcessBuilder("clear").inheritIO().start().waitFor();}}
     catch (java.io.IOException | InterruptedException e){
         // Fallback clear
-        for (int i = 0; i < 50; i++) {System.out.println();}}
+        /*for (int i = 0; i < 50; i++) {System.out.println();}}*/
+        System.out.print("\033[H\033[2J");
+        }
+    }
+    public static void clearInputBuffer() {
+        try {
+            while (System.in.available() > 0) {
+                System.in.read();
+            }
+        } catch (IOException ignored) {}
+        System.out.flush();
     }
     //
-    public static void actionDelay(int otherChoice) throws InterruptedException {
-        Thread.sleep(otherChoice == 0 ? 1000 : 2000);}
+    public static void actionDelay(int otherChoice) {
+        if(!fastMode){
+            sleep(otherChoice == 0 ? 1000 : 2000);
+        }else{
+            sleep(500);
+        }
+    }
     //
-    public static void dialoguePrint(String msg, long ms) throws InterruptedException {
-        char Char;
-        for(int i = 0; i < msg.length(); i++){
-            Char = msg.charAt(i);
-            System.out.print(Char);
-            sleep(ms);}
+    public static void dialoguePrint(String msg, long ms) {
+        if(!fastMode){
+            char Char;
+            for(int i = 0; i < msg.length(); i++){
+                Char = msg.charAt(i);
+                System.out.print(Char);
+                sleep(ms);
+            }
+        }else{
+            char Char;
+            for(int i = 0; i < msg.length(); i++){
+                Char = msg.charAt(i);
+                System.out.print(Char);
+            }
+        }
+    }
+    //
+    public static double round(double value){
+        return Math.round(value * 100.0) / 100.0;
     }
     /*
     Turn logic blocks
     */
     public static void playerAttacks(){
-        if(playerDmgMultiplier != 1){System.out.println("\t(Dmg Amp.: " + playerDmgMultiplier + " -> 1)");}
+        if(playerDmgMultiplier != playerDmgMultCurrLvl){System.out.println("\t(Dmg Amp.: " + playerDmgMultiplier + " -> " + playerDmgMultCurrLvl + ")");}
         if(playerSpeed != 1){System.out.println("\t(Speed: " + playerSpeed + " -> 1)");}
     }
     public static void playerStatReset(){
-        playerDmgMultiplier = (double)(9+playerLevel)/10; playerSpeed = 1;
+        playerDmgMultiplier = playerDmgMultCurrLvl; playerSpeed = 1;
     }
     public static void enemyAttacks(){
-        if(enemyDmgMultiplier != 1){System.out.println("\t(Dmg Amp.: " + enemyDmgMultiplier + " -> 1)");}
+        if(enemyDmgMultiplier != enemyDmgMultCurrLvl){System.out.println("\t(Dmg Amp.: " + enemyDmgMultiplier + " -> " + enemyDmgMultCurrLvl + ")");}
         if(enemySpeed != 1){System.out.println("\t(Speed: " + enemySpeed + " -> 1)");}
     }
     public static void enemyStatReset(){
-        enemyDmgMultiplier = 1; enemySpeed = 1;
+        enemyDmgMultiplier = enemyDmgMultCurrLvl;
+        enemySpeed = 1;
     }
     public static void playerTakesDmg(){
         int eDmg = (int)(enemyDmg*enemyDmgMultiplier);
@@ -104,8 +145,32 @@ public class Game {
     public static void enemyTakesNoDmg(){
         System.out.println("Enemy Health: " + enemyHealth);
     }
-    public static void LvlUpPlayerHeal(){
-        playerDefenseHeal = playerDefenseHeal+(playerLevel-1);
+    public static void LvlUpPlayer(){
+        playerDmgMultiplier = 1.0+((level-1)/5)*0.5;
+        playerDefenseHeal = 5+((level-1)*2);
+        playerDmgMultCurrLvl = playerDmgMultiplier;
+        playerChargeBonus = Math.min(20, 1+((level-1)/5));
+    }
+    public static void LvlUpEnemy(){
+        if(level%2 == 0){
+            enemyDmgMultiplier = Math.max(1, 1.0+((level-6)/5)*0.5);
+            enemyDefenseHeal = 5+15*level/8;
+        }
+        enemyDmgMultCurrLvl = enemyDmgMultiplier;
+        if(level%10 == 0){
+            enemyHealth = 100+3*level/2;
+            enemyDmgMultiplier = (double)(10+level)/10;
+            enemySpeed = 2;
+        }else{
+            enemyHealth = 100+level;
+            enemySpeed = 1;
+        }
+        if(level == 100){
+            enemyHealth = 250;
+            enemyDmgMultiplier = (double)(10+level)/10;
+            enemySpeed = 3;
+        }
+        enemyChargeBonus = Math.max(1, 1+((level-21)/5));
     }
     public static void playerDefends(){
         System.out.println("Player Defended!");
@@ -126,30 +191,96 @@ public class Game {
         System.out.println("\t(Speed: " + enemySpeed + ")");
     }
     //
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
+        fastMode = (args.length == 1);
+        debugMode = (args.length == 2);
+        if(args.length >= 3){debugMode = fastMode = true;}
         clearScreen();
         dialoguePrint("\nPlease Enter your UserName (leave blank to be unnamed)\n\t(press ENTER when you're ready)\n", 10);
+        clearInputBuffer();
         userName = scanner.nextLine();
         if(userName.equals("")){userName = "Player";}
         System.out.flush();
-        actionMenu();
+        while(true){actionMenu();}
     }
     //
-    public static void actionMenu() throws InterruptedException {
+    public static void debugMenu() {
+        clearScreen();
+        clearInputBuffer();
+        System.out.println(
+            """
+            Options:\n
+            1. Level\n
+            2. Player Health
+            3. PLayer Dmg Amp
+            4. Player Defense Heal
+            5. Player Speed\n
+            6. Enemy Health
+            7. Enemy Dmg Amp
+            8. Enemy Defense Heal
+            9. Enemy Speed\n""");
+        byte choice = scanner.nextByte();
+        switch(choice){
+            case 1 -> {
+                System.out.print("\nEnter your desired Level (byte): ");
+                level = scanner.nextByte();}
+            case 2 -> {
+                System.out.print("\nEnter your desired Player Health (int): ");
+                playerHealth = scanner.nextInt();}
+            case 3 -> {
+                System.out.print("\nEnter your desired Player Dmg Amp (double): ");
+                playerDmgMultiplier = scanner.nextDouble();}
+            case 4 -> {
+                System.out.print("\nEnter your desired Player Heal Amount (int): ");
+                playerDefenseHeal = scanner.nextInt();}
+            case 5 -> {
+                System.out.print("\nEnter your desired Player Speed (byte): ");
+                playerSpeed = scanner.nextByte();}
+            case 6 -> {
+                System.out.print("\nEnter your desired Enemy Health (int): ");
+                enemyHealth = scanner.nextInt();}
+            case 7 -> {
+                System.out.print("\nEnter your desired Enemy Dmg Amp (double): ");
+                enemyDmgMultiplier = scanner.nextDouble();}
+            case 8 -> {
+                System.out.print("\nEnter your desired Enemy Heal Amout (int): ");
+                enemyDefenseHeal = scanner.nextInt();}
+            case 9 -> {
+                System.out.print("\nEnter your desired Enemy Speed (byte): ");
+                enemySpeed = scanner.nextByte();}
+            case 0 -> {}
+            default -> {}
+        }
+    }
+    //
+    public static void actionMenu() {
         while (true) {    
+            System.out.flush();
             clearScreen();
             playerChoice = 0;
             enemyChoice = 0;
             if(playerHealth <= 0){
                 lose();}
-            else if(enemyHealth <= 0 && playerLevel != 100){
+            else if(enemyHealth <= 0 && level != 100){
                 enemyDefeat();
-                }else if(enemyHealth <= 0 && playerLevel == 100){
+                continue;
+                }else if(enemyHealth <= 0 && level == 100){
                     win();}
             //
-            System.out.println("Current Objective: Reach Level 100");
-            System.out.println("\t Level: " + playerLevel);
-            System.out.println(">--------------------------------<");
+            if(level == 100){
+                System.out.println("\t FINAL BOSS");
+            }else if(level % 10 == 0){
+                System.out.println("Current Objective: Reach Level 100");
+                if(debugMode){System.out.print("DEBUG\t Level: " + level + "(Boss)");
+                }else{System.out.print("\t Level: " + level + "(Boss)");}
+                if(fastMode){System.out.print("\tFAST");}
+            }else{
+                System.out.println("Current Objective: Reach Level 100");
+                if(debugMode){System.out.print("DEBUG\t Level: " + level);
+                }else{System.out.print("\t Level: " + level);}
+                if(fastMode){System.out.print("\tFAST");}
+            }
+            System.out.println("\n>--------------------------------<");
             System.out.println("\t" + userName + ": ");
             System.out.println("\t Health: " + playerHealth);
             System.out.println("\t  Dmg Amp.: " + playerDmgMultiplier);
@@ -163,9 +294,15 @@ public class Game {
             System.out.println("\t1. Attack");
             System.out.println("\t2. Charge up");
             System.out.println("\t3. Defend");
-            System.out.println("\n     { 4. Run }  { 5. Spare }\n");
+            System.out.println("\n     { 4. Run }  { 5. Spare }");
+            if(debugMode) {System.out.println("\t0. DEBUG MENU");}
+            clearInputBuffer();
             playerChoice = scanner.nextInt();
             scanner.nextLine();
+            //
+            if(playerChoice == 834) {debugMode = !debugMode; return;}
+                if(debugMode && playerChoice == 0) {debugMenu(); return;}
+            if(playerChoice == 712) {fastMode = !fastMode; return;}
             //
             if(playerChoice == 5){spare();}
             if(playerSpeed>enemySpeed){
@@ -190,7 +327,8 @@ public class Game {
             turnEvent();
         }
     }
-    public static void turnEvent() throws InterruptedException {
+    public static void turnEvent() {
+        turnScenario = turnScenarios.noneAttack;
         clearScreen();
         //
             if(playerIsAttacking){
@@ -215,7 +353,7 @@ public class Game {
         //
         switch (turnScenario) {
             case bothAttack -> {
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesDmg();
                 playerAttacks();
                 System.out.println("\n Enemy:");
@@ -227,7 +365,7 @@ public class Game {
             }
             case PlayerAttackEnemyDefendSuccess -> {
                 System.out.println(userName + "'s attack was blocked by enemy!\n");
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesNoDmg();
                 playerAttacks();
                 System.out.println("\n Enemy:");
@@ -237,7 +375,7 @@ public class Game {
             }
             case PlayerAttackEnemyDefendFailure -> {
                 System.out.println(userName + " attacked faster than enemy could defend!\n");
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesNoDmg();
                 playerAttacks();
                 System.out.println("\n Enemy:");
@@ -247,7 +385,7 @@ public class Game {
             }
             case EnemyAttackPlayerDefendSuccess -> {
                 System.out.println("Enemy attack was blocked by " + userName + "!\n");
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerDefends();
                 System.out.println("\n Enemy:");
                 enemyTakesNoDmg();
@@ -257,7 +395,7 @@ public class Game {
             }
             case EnemyAttackPlayerDefendFailure -> {
                 System.out.println("Enemy attacked faster than " + userName + " could defend!\n");
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesDmg();
                 System.out.println("\n Enemy:");
                 enemyTakesNoDmg();
@@ -266,13 +404,13 @@ public class Game {
                 enemyStatReset();
             }
             case bothDefend -> {
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerDefends();
                 System.out.println("\n Enemy:");
                 enemyDefends();
             }
             case PlayerAttackEnemyChargeUp -> {
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesNoDmg();
                 playerAttacks();
                 System.out.println("\n Enemy:");
@@ -282,14 +420,14 @@ public class Game {
                 playerStatReset();
             }
             case PlayerDefendEnemyChargeUp -> {
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerDefends();
                 System.out.println("\n Enemy:");
                 enemyTakesNoDmg();
                 enemyChargesUp();
             }
             case EnemyAttackPlayerChargeUp -> {
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesDmg();
                 playerChargesUp();
                 System.out.println("\n Enemy:");
@@ -299,14 +437,14 @@ public class Game {
                 enemyStatReset();
             }
             case EnemyDefendPlayerChargeUp -> {
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesNoDmg();
                 playerChargesUp();
                 System.out.println("\n Enemy:");
                 enemyDefends();
             }
             case bothChargeUp -> {
-                System.out.println(userName + ": ");
+                System.out.println(" " + userName + ": ");
                 playerTakesNoDmg();
                 playerChargesUp();
                 System.out.println("\n Enemy:");
@@ -334,10 +472,10 @@ public class Game {
         enemyIsChargingUp = false;
         //
         System.out.println("\nPress ENTER to continue...");
+        clearInputBuffer();
         scanner.nextLine();
     }
-    //
-    public static int playerAction(int playerChoice) throws InterruptedException {
+    public static int playerAction(int playerChoice) {
         switch (playerChoice){
                 case 1 -> battlePlayer();
                 case 2 -> chargeUpPlayer();
@@ -347,21 +485,22 @@ public class Game {
         return playerChoice;
     }
     //
-    public static void battlePlayer() throws InterruptedException {
+    public static void battlePlayer() {
         dialoguePrint("\n" + userName + " is attacking!\n", 25);
         playerIsAttacking = true;
         //
         actionDelay(enemyChoice);
     }
-    public static void chargeUpPlayer() throws InterruptedException {
+    public static void chargeUpPlayer() {
         dialoguePrint("\n" + userName + " is charging up!\n", 25);
         playerIsChargingUp = true;
-        playerDmgMultiplier += 1;
-        playerSpeed += 1;
+        playerDmgMultiplier += playerChargeBonus;
+        //playerDmgMultiplier = round(playerDmgMultiplier);
+        playerSpeed = (byte)Math.min(10, ++playerSpeed);
         //
         actionDelay(enemyChoice);
     }
-    public static void defendPlayer() throws InterruptedException {
+    public static void defendPlayer() {
         if(playerSpeed < enemySpeed && enemyChoice == 1){
             dialoguePrint("\n" + userName + " is too slow to defend!\n", 25);
             playerIsDefending = true;
@@ -375,39 +514,65 @@ public class Game {
         actionDelay(enemyChoice);
     }
     //
-    public static void run() throws InterruptedException {
+    public static void run() {
         dialoguePrint("\n" + userName + " is running away!", 25);
-        Thread.sleep(3000);
+        sleep(3000);
         clearScreen();
         dialoguePrint("\n\tYou fucking coward!\n", 25);
-        Thread.sleep(3000);
+        sleep(3000);
         System.exit(0);
     }
     //
-    public static int enemyAction() throws InterruptedException {
-        enemyChoice = (int)(Math.random()*3+1);
-        switch(enemyChoice){
-            case 1 -> battleEnemy();
-            case 2 -> chargeUpEnemy();
-            case 3 -> defendEnemy();}
+    public static boolean enemyCanKill() {
+        return (playerHealth <= enemyDmg*enemyDmgMultiplier && enemySpeed >= playerSpeed);
+    }
+    public static boolean playerCouldKill() {
+        return (enemyHealth <= playerDmg*playerDmgMultiplier);
+    }
+    public static boolean enemyOutSped() {
+        return (enemySpeed < playerSpeed);
+    }
+    public static int enemyAction() {
+        if(enemyCanKill()){
+            enemyChoice = 1;
+            battleEnemy();
+        }else if (playerCouldKill()) {
+            enemyChoice = (byte)(Math.random()*3+1);
+            switch(enemyChoice){
+                case 1 -> battleEnemy();
+                case 2,3 -> defendEnemy();}
+        }else if(enemyOutSped()){
+            enemyChoice = (byte)(Math.random()*6+1);
+            switch(enemyChoice){
+                case 1,2 -> battleEnemy();
+                case 3,4,5 -> chargeUpEnemy();
+                case 6 -> defendEnemy();}
+        }else{
+            enemyChoice = (byte)(Math.random()*3+1);
+            switch(enemyChoice){
+                case 1 -> battleEnemy();
+                case 2 -> chargeUpEnemy();
+                case 3 -> defendEnemy();}
+        }
         return enemyChoice;
     }
     //
-    public static void battleEnemy() throws InterruptedException {
+    public static void battleEnemy() {
         dialoguePrint("\nEnemy is attacking!\n", 25);
         enemyIsAttacking = true;
         //
         actionDelay(playerChoice);
     }
-    public static void chargeUpEnemy() throws InterruptedException {
+    public static void chargeUpEnemy() {
         dialoguePrint("\nEnemy is charging up!\n", 25);
         enemyIsChargingUp = true;
-        enemyDmgMultiplier += 1;
-        enemySpeed += 1;
+        enemyDmgMultiplier += enemyChargeBonus;
+        //enemyDmgMultiplier = round(enemyDmgMultiplier);
+        enemySpeed = (byte)Math.min(10, ++enemySpeed);
         //
         actionDelay(playerChoice);
     }
-    public static void defendEnemy() throws InterruptedException {
+    public static void defendEnemy() {
         if(enemySpeed < playerSpeed && playerChoice == 1){
             dialoguePrint("\nEnemy is too slow to defend!\n", 25);
             enemyIsDefending = true;
@@ -421,18 +586,21 @@ public class Game {
         actionDelay(playerChoice);
     }
     //
-    public static void enemyDefeat() throws InterruptedException {
+    public static void enemyDefeat() {
         clearScreen();
         dialoguePrint("\nYou defeated the enemy!", 25);
-        Thread.sleep(1000);
+        sleep(1000);
         dialoguePrint(" (moving on to the next level)\n", 25);
-        Thread.sleep(3000);
-        playerLevel++;
-        dialoguePrint("\nLevel -> " + playerLevel + " (+1)", 36);
-        playerHealth += 50;
-        dialoguePrint("\nHealth -> " + playerHealth + " (+50)", 36);
+        sleep(3000);
+        level++;
+        dialoguePrint("\nLevel -> " + level + " (+1)", 36);
+        int levelUpHeal = Math.max((100-(level-2))/2,1);
+        playerHealth += levelUpHeal;
+        dialoguePrint("\nHealth -> " + playerHealth + " (+" + levelUpHeal + ")", 36);
         enemyHealth = 100;
-        LvlUpPlayerHeal();
+        playerStatReset(); enemyStatReset();
+        LvlUpPlayer();
+        LvlUpEnemy();
         playerIsAttacking = false;
         playerFailedDefense = false;
         playerIsDefending = false;
@@ -441,45 +609,43 @@ public class Game {
         enemyIsDefending = false;
         playerIsChargingUp = false;
         enemyIsChargingUp = false;
-        playerStatReset(); enemyStatReset();
-        Thread.sleep(2000);
-        actionMenu();
+        sleep(2000);
     }
     //
-    public static void win() throws InterruptedException {
+    public static void win() {
         clearScreen();
-        dialoguePrint("\nYou won! (GGWP)", 25);
-        Thread.sleep(3000);
+        dialoguePrint("\nYou won! (GGWP)\n", 25);
+        sleep(3000);
         System.exit(0);
     }
-    public static void lose() throws InterruptedException {
+    public static void lose() {
         clearScreen();
-        dialoguePrint("\nYou lost! (womp womp)", 25);
-        Thread.sleep(3000);
+        dialoguePrint("\nYou lost! (womp womp)\n", 25);
+        sleep(3000);
         System.exit(0);
     }
     //
-    public static void spare() throws InterruptedException {
-        Thread.sleep(2500); clearScreen();
+    public static void spare() {
+        sleep(2500); clearScreen();
         dialoguePrint("\nEnemy:", 25);
-        Thread.sleep(3000); System.out.print("\n\n"); Thread.sleep(250);
+        sleep(3000); System.out.print("\n\n"); sleep(250);
         dialoguePrint("\tYou", 100); dialoguePrint(" ... ", 500); dialoguePrint("spared me?", 100);
-        Thread.sleep(3000); clearScreen();
+        sleep(3000); clearScreen();
         for(int i = 1; i <= 3; i++){
             System.out.print(".");
             sleep(1500);}
-        clearScreen(); Thread.sleep(1000); System.out.print("\n");
+        clearScreen(); sleep(1000); System.out.print("\n");
         do { 
             System.out.print("\033[2K\r\tPlayer Health: " + playerHealth);
             System.out.flush();
             sleep(((playerHealth*27)/100));
             playerHealth--;
         } while (playerHealth >= 0);
-        Thread.sleep(2000);
-        dialoguePrint("\n\nYou died", 25); Thread.sleep(1000); dialoguePrint(" (LOL)", 25);
-        Thread.sleep(2000); clearScreen(); Thread.sleep(1000);
+        sleep(2000);
+        dialoguePrint("\n\nYou died", 25); sleep(1000); dialoguePrint(" (LOL)", 25);
+        sleep(2000); clearScreen(); sleep(1000);
         dialoguePrint("\n\tGET DUNKED OOOOOONNN!!!", 49);
-        Thread.sleep(2000); System.out.print("\n");
+        sleep(2000); System.out.print("\n");
         System.exit(0);
     }
 }
