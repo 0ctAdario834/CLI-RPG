@@ -248,7 +248,6 @@ public class Game {
             case 9 -> {
                 System.out.print("\nEnter your desired Enemy Speed (byte): ");
                 enemySpeed = scanner.nextByte();}
-            case 0 -> {}
             default -> {}
         }
     }
@@ -280,6 +279,7 @@ public class Game {
                 }else{System.out.print("\t Level: " + level);}
                 if(fastMode){System.out.print("\tFAST");}
             }
+            //
             System.out.println("\n>--------------------------------<");
             System.out.println("\t" + userName + ": ");
             System.out.println("\t Health: " + playerHealth);
