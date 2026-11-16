@@ -1,4 +1,4 @@
-public class Game {
+public class game {
     /* Utilities */
     static java.util.Scanner scanner = new java.util.Scanner(System.in);
     static boolean fastMode = false;
