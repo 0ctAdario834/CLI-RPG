@@ -55,19 +55,21 @@ public class game {
     }
     /**/
     public static void clearScreen() {
-    try {
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("windows")) {
-            // Windows clear
-            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();}
-            else{
-            // Unix clear
-            new ProcessBuilder("clear").inheritIO().start().waitFor();}}
-    catch (java.io.IOException | InterruptedException e){
-        // Fallback clear
-        /*for (int i = 0; i < 50; i++) {System.out.println();}}*/
-        System.out.print("\033[H\033[2J");
-        }
+        System.out.print("\u001B[H\u001B[?2J");
+        System.out.flush();
+        /*try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("windows")) {
+                // Windows clear
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();}
+                else{
+                // Unix clear
+                new ProcessBuilder("clear").inheritIO().start().waitFor();}}
+        catch (java.io.IOException | InterruptedException e){
+            // Fallback clear
+            //for (int i = 0; i < 50; i++) {System.out.println();}}
+            System.out.print("\033[H\033[2J");
+            }*/
     }
     public static void clearInputBuffer() {
         try {
