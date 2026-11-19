@@ -283,14 +283,14 @@ public class game {
                 }if(fastMode){System.out.printf("%12s", "FAST");}
             }else if(level % 10 == 0){
                 System.out.println("Current Objective: Reach Level 100");
-                if(debugMode){System.out.printf("%-9s Level: %2d (Boss)", "DEBUG", level);
-                }else{System.out.printf("%16s %2d (Boss)", "Level: ", level);
-                }if(fastMode){System.out.printf("%8s", "FAST");}
+                if(debugMode){System.out.printf("%-9s %-7s %2d (Boss)", "DEBUG", "Level: ", level);
+                }else{System.out.printf("%17s %2d (Boss)", "Level: ", level);
+                }if(fastMode){System.out.printf("%7s", "FAST");}
             }else{
                 System.out.println("Current Objective: Reach Level 100");
-                if(debugMode){System.out.printf("%-9s Level: %2d", "DEBUG", level);
-                }else{System.out.printf("%16s %2d", "Level: ", level);
-                }if(fastMode){System.out.printf("%15s", "FAST");}
+                if(debugMode){System.out.printf("%-9s %-7s %2d", "DEBUG", "Level: ", level);
+                }else{System.out.printf("%17s %2d", "Level: ", level);
+                }if(fastMode){System.out.printf("%14s", "FAST");}
             }
             //
             System.out.println("\n>--------------------------------<");
