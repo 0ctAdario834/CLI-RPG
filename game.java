@@ -296,12 +296,12 @@ public class game {
             System.out.println("\n>--------------------------------<");
             System.out.printf("\t%s: %n", userName);
             System.out.printf("\t Health: %d%n", playerHealth);
-            System.out.printf("\t  Dmg Amp.: %f%n", playerDmgMultiplier);
+            System.out.printf("\t  Dmg Amp.: %.1f%n", playerDmgMultiplier);
             System.out.printf("\t   Speed: %d%n", playerSpeed);
             System.out.print("\n");
             System.out.println("\tEnemy: ");
             System.out.printf("\t Health: %d%n", enemyHealth);
-            System.out.printf("\t  Dmg Amp.: %f%n" + enemyDmgMultiplier);
+            System.out.printf("\t  Dmg Amp.: %.1f%n", enemyDmgMultiplier);
             System.out.printf("\t   Speed: %d%n", enemySpeed);
             System.out.println(">--------------------------------<\n");
             System.out.println("\t1. Attack");
