@@ -204,50 +204,62 @@ public class game {
     }
     //
     public static void debugMenu() {
-        clearScreen();
-        clearInputBuffer();
-        System.out.println(
-            """
-            Options:\n
-            1. Level\n
-            2. Player Health
-            3. PLayer Dmg Amp
-            4. Player Defense Heal
-            5. Player Speed\n
-            6. Enemy Health
-            7. Enemy Dmg Amp
-            8. Enemy Defense Heal
-            9. Enemy Speed\n""");
-        byte choice = scanner.nextByte();
-        switch(choice){
-            case 1 -> {
-                System.out.print("\nEnter your desired Level (byte): ");
-                level = scanner.nextByte();}
-            case 2 -> {
-                System.out.print("\nEnter your desired Player Health (int): ");
-                playerHealth = scanner.nextInt();}
-            case 3 -> {
-                System.out.print("\nEnter your desired Player Dmg Amp (double): ");
-                playerDmgMultiplier = scanner.nextDouble();}
-            case 4 -> {
-                System.out.print("\nEnter your desired Player Heal Amount (int): ");
-                playerDefenseHeal = scanner.nextInt();}
-            case 5 -> {
-                System.out.print("\nEnter your desired Player Speed (byte): ");
-                playerSpeed = scanner.nextByte();}
-            case 6 -> {
-                System.out.print("\nEnter your desired Enemy Health (int): ");
-                enemyHealth = scanner.nextInt();}
-            case 7 -> {
-                System.out.print("\nEnter your desired Enemy Dmg Amp (double): ");
-                enemyDmgMultiplier = scanner.nextDouble();}
-            case 8 -> {
-                System.out.print("\nEnter your desired Enemy Heal Amout (int): ");
-                enemyDefenseHeal = scanner.nextInt();}
-            case 9 -> {
-                System.out.print("\nEnter your desired Enemy Speed (byte): ");
-                enemySpeed = scanner.nextByte();}
-            default -> {}
+        while(true){
+            clearScreen();
+            clearInputBuffer();
+            System.out.println(
+                """
+                Options:\n
+                1. Level                %7d\n
+                2. Player Health        %7d
+                3. PLayer Dmg Amp       %7.1f
+                4. Player Defense Heal  %7d
+                5. Player Speed         %7d\n
+                6. Enemy Health         %7d
+                7. Enemy Dmg Amp        %7.1f
+                8. Enemy Defense Heal   %7d
+                9. Enemy Speed          %7d\n
+                0. Exit\n""".formatted( level,
+                                        playerHealth,
+                                        playerDmgMultiplier,
+                                        playerDefenseHeal,
+                                        playerSpeed,
+                                        enemyHealth,
+                                        enemyDmgMultiplier,
+                                        enemyDefenseHeal,
+                                        enemySpeed));
+            byte choice = scanner.nextByte();
+            switch(choice){
+                case 1 -> {
+                    System.out.print("\nEnter your desired Level (byte): ");
+                    level = scanner.nextByte();}
+                case 2 -> {
+                    System.out.print("\nEnter your desired Player Health (int): ");
+                    playerHealth = scanner.nextInt();}
+                case 3 -> {
+                    System.out.print("\nEnter your desired Player Dmg Amp (double): ");
+                    playerDmgMultiplier = scanner.nextDouble();}
+                case 4 -> {
+                    System.out.print("\nEnter your desired Player Heal Amount (int): ");
+                    playerDefenseHeal = scanner.nextInt();}
+                case 5 -> {
+                    System.out.print("\nEnter your desired Player Speed (byte): ");
+                    playerSpeed = scanner.nextByte();}
+                case 6 -> {
+                    System.out.print("\nEnter your desired Enemy Health (int): ");
+                    enemyHealth = scanner.nextInt();}
+                case 7 -> {
+                    System.out.print("\nEnter your desired Enemy Dmg Amp (double): ");
+                    enemyDmgMultiplier = scanner.nextDouble();}
+                case 8 -> {
+                    System.out.print("\nEnter your desired Enemy Heal Amout (int): ");
+                    enemyDefenseHeal = scanner.nextInt();}
+                case 9 -> {
+                    System.out.print("\nEnter your desired Enemy Speed (byte): ");
+                    enemySpeed = scanner.nextByte();}
+                case 0 -> {return;}
+                default -> {}
+            }
         }
     }
     //
@@ -269,9 +281,9 @@ public class game {
                 System.out.println("\t FINAL BOSS");
             }else if(level % 10 == 0){
                 System.out.println("Current Objective: Reach Level 100");
-                if(debugMode){System.out.print("DEBUG\t Level: " + level + "(Boss)");
-                }else{System.out.print("\t Level: " + level + "(Boss)");}
-                if(fastMode){System.out.print("\tFAST");}
+                if(debugMode){System.out.printf("%-9s Level: %2d (Boss)", "DEBUG", level);
+                }else{System.out.printf("%16s %2d (Boss)", "Level: ", level);}
+                if(fastMode){System.out.printf("%8s", "FAST");}
             }else{
                 System.out.println("Current Objective: Reach Level 100");
                 if(debugMode){System.out.print("DEBUG\t Level: " + level);
