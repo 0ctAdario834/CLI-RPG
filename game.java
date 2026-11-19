@@ -278,17 +278,19 @@ public class game {
                     win();}
             //
             if(level == 100){
-                System.out.println("\t FINAL BOSS");
+                if(debugMode){System.out.printf("%-8s %13s", "DEBUG", "FINAL BOSS");
+                }else{System.out.printf("%22s", "FINAL BOSS");
+                }if(fastMode){System.out.printf("%12s", "FAST");}
             }else if(level % 10 == 0){
                 System.out.println("Current Objective: Reach Level 100");
                 if(debugMode){System.out.printf("%-9s Level: %2d (Boss)", "DEBUG", level);
-                }else{System.out.printf("%16s %2d (Boss)", "Level: ", level);}
-                if(fastMode){System.out.printf("%8s", "FAST");}
+                }else{System.out.printf("%16s %2d (Boss)", "Level: ", level);
+                }if(fastMode){System.out.printf("%8s", "FAST");}
             }else{
                 System.out.println("Current Objective: Reach Level 100");
-                if(debugMode){System.out.print("DEBUG\t Level: " + level);
-                }else{System.out.print("\t Level: " + level);}
-                if(fastMode){System.out.print("\tFAST");}
+                if(debugMode){System.out.printf("%-9s Level: %2d", "DEBUG", level);
+                }else{System.out.printf("%16s %2d", "Level: ", level);
+                }if(fastMode){System.out.printf("%15s", "FAST");}
             }
             //
             System.out.println("\n>--------------------------------<");
